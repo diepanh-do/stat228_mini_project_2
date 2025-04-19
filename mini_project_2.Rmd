@@ -1,0 +1,256 @@
+---
+title: "A Data Wrangling Tutorial for R Beginners with Soccer Dataset"
+output: html_document
+author: "Diepanh Do"
+date: "2025-04-10"
+---
+
+# Introduction
+
+Part of the reason why I chose Data Science as a major in undergraduate was the fact that it is, undoubtedly, a fast-growing field that attracts the majority of attention. It also extends to other "glamorous" hot topics such are Machine Learning, Artificial Intelligence, Statistical Learning, and more.
+
+Nevertheless, as I study this subject, I gradually and still continue to understand that working with data, or in the future big data, requires spending time organizing and understanding them from the beginning before any complex math and computer science applications can happen.
+
+As a college student taking to Intro to Data Science, I would hope that this article could bring about my understanding of data wrangling, as I have spent my time loving this seemingly tedious task.
+
+In this article, we will only be using a Premier League Match Data 2021-2022's soccer-2122 dataset. This dataset is provided on Kaggle at this URL: https://www.kaggle.com/datasets/evangower/premier-league-match-data?resource=download. As a soccer fan, it is delightful for me to know that sports analytics has been evolving so fast over these years. Whether you are or are not enthusiasted in sports, it is good to know that this dataset only contained widely intepretable such as results, goals, and fouls. The 21/22 season is the first return of full audience attendance after the COVID-19 pandemic. We have witnessed lots of dramatic events following the race to the title, as the league has always been. Man City was the champion, while the top scorers were Mohamed Salah and Son Heung-min from Liverpool and Tottenham Hotspur, respectively. What a big race! Although this article will not focus on data analysis, I still hope that data wrangling and visualization will allow us to see some subtle trends of the EPL season 21-22 with the matches' information. 
+
+The author of this dataset is Evan Gower. He collected it from the official website of the Premier League and cleaned it using Google Sheets. It contains the data of all 380 matches of the season. In addition, it is also noteworthy for those interested to know that the author also did an analysis titled "Who Wins the EPL if Games Ended at Halftime?", which can also be found on Kaggle at https://www.kaggle.com/code/evangower/who-wins-the-epl-if-games-ended-at-halftime?scriptVersionId=119060513.
+
+# Body
+
+## Prerequisite
+
+This article expects basic understanding of programming language and minimal knowledge of R. If the below is not familiar to you, I do not think it is a challenge to still enjoy this article, but it might take a bit more time to do some research.
+
+For the tasks performed in this article, we will be using the library Tidyverse. Tidyverse is a widely-used R package for data science. More precisely, dplyr will be used for data wrangling and ggplot2 for data visualizing, both are core packages of Tidyverse.
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# Load necessary library
+library(tidyverse)
+```
+
+## Understanding data
+
+Given that we have already been familar with reading in and inspecting data, we will skim through this part.
+
+```{r, warning=FALSE, message=FALSE}
+# Read in the dataset from CSV file
+epl_2122 <- read_csv(("soccer21-22.csv"))
+```
+
+```{r, warning=FALSE, message=FALSE}
+# Glimpse at the dataset
+glimpse(epl_2122)
+```
+The data has 380 rows corresponding to 380 matches played and 22 columns representing 22 pieces of information of the match. Although it is crucial to understand which each column represents, I will not list the meanings of them here since the author has, thankfully, done so on the Kaggle page. It might be essential to refer to that page often because these column names contain mostly abbreviations. 
+
+## Data Wrangling
+
+As mentioned, we will be using dplyr for data wrangling. Data wrangling is the process of transforming raw data into data that can be used specifically for our purposes. This might include cleaning messy data, removing missing data, or doing calculations to get the numeric values we want, etc.
+
+In the scope of this article, I will introduce you to five dplyr functions: select(), filter(), mutate(), group_by(), and summarize().
+
+First, how these functions operate only on either column or row. This means that they, respectively, either modify (the number of) columns or rows in the dataset and make no change to the other. 
+
+Second, it is also worth mentioning that the application of each function varies for different context, and we will not be able to discuss all of them in this article. As a Data Science student, my advice is to practice using them regularly to get a sense of when you will need them.
+
+### select()
+
+select() is a function that operates on column. It takes in column name(s) as input argument and produces a dataframe that keeps only the selected columns.
+
+We can use it to keep, drop, or rename columns of the dataset.
+
+For example, returning to the "epl_2122" dataset, if I only want to see a brief recap of just the matches and the results, I can do:
+
+```{r, warning=FALSE, message=FALSE}
+# Select only team names and fulltime result
+epl_2122 |>
+  select(HomeTeam, AwayTeam, FTR)
+```
+
+I think we can all agree that this new dataframe more readable if our purpose is just to see the results of the matches.
+
+Another example is when we want to look at the home data. We will also be using starts_with(). This is another piece of dplyr called a helper function. This does not directly represent column names, but will match with any columns containing the pattern. We notice that all home data starts with either "Home" or "H", so we can use:
+
+```{r, warning=FALSE, message=FALSE}
+# Select only home data
+epl_2122 |>
+  select(starts_with("Home")|starts_with("H"))
+```
+
+With this dataframe, we can better concentrate only on the characteristics of home matches.
+
+This last example will illustrate how select() can be used to rename columns. Perhaps we want to look at the match and the date, while also wanting to change "Date" into "MatchDate" in case we want to show the dataframe to someone else without further need of explanation, we can do:
+
+```{r}
+# Rename "Date" to "MatchDate"
+epl_2122 |>
+  select(MatchDate = Date, HomeTeam, AwayTeam)
+```
+
+This dataframe now displays "MatchDate" instead of "Date".
+
+### filter()
+
+filter() is a function that operates on row. It takes in logical expression as input argument and produces a dataframe that keeps only the rows that meet the condition of the stated expression.
+
+It is required that the argument inside the parentheses produces a True/False answer. Therefore, it might be useful to keep in mind that any True/False expression, not only math expressions (>, <, =, etc.) can be used as an argument for filter().
+
+As the first example, perhaps we just want a record of Aston Villa's matches:
+
+```{r, warning=FALSE, message=FALSE}
+# Filter only Aston Villa matches
+epl_2122 |>
+  filter(HomeTeam == "Aston Villa" | AwayTeam == "Aston Villa")
+```
+
+**Excersise 1:** Now it is the time that you guys can work start practicing something. We will now need to filter matches where the fulltime result is different from halftime result. As a hint, you might need to use "!=" as the opposite of "==". You should try this with your own R script/console. The answer is provided right below.
+
+*Answer 1:*
+
+If I only care about the fulltime and halftime results of the match, I can also use select() after filter() to leave out unnecessary columns:
+
+```{r, warning=FALSE, error=FALSE}
+# Filter matches where fulltime and halftime result are different
+epl_2122 |>
+  filter(FTR != HTR) |>
+  select(HomeTeam, AwayTeam, FTR, HTR)
+```
+
+### mutate()
+
+We now come to a function that create instead of remove. mutate() is a function that operates on column. It takes in an operation on existing column as input argument and produces a dataframe with the new column(s) as a result of the operation.
+
+In soccer leagues, goal difference of each match is an important factor for ranking. If we want to look at the goal difference of each team after each match but have not had this data yet, we can create a column of such where we subtract the goal of the home team to the away team.
+
+```{r, warning=FALSE, message=FALSE}
+# Create two new columns that record goal differences after each match
+epl_2122 |>
+  mutate(HGD = FTHG - FTAG,
+         AGD = FTAG - FTHG) |>
+  select(HomeTeam, AwayTeam, HGD, AGD)
+```
+
+We also notice that I only keep only a selection of column in this new dataframe. This would be easier for handling my data if my next step is calculating the goal difference to rank these clubs.
+
+I also chose to name "HGD" and "AGD" for "home goal difference" and "away goal difference" to be consistent with the naming format of the original author. If I were to work with this dataset, I would remember to note down the interpretation of my column names. However, in the case where I work in a team, I will also make sure to communicate with my team members to agree on a variable naming style.
+
+**Exercise 2:** For this exercise, we will create a new column that indicates if the match has a big number of goals or not. There is no rule for this, but I would take the total of goals equal five or above as a big match. I will provide the operation for this as follows: if_else(FTHG + FTAG >= 5, "Y", "N") and would name the column "HighScoringMatch", but you for sure can go with whatever you want. Again, you should work on this in your own R device. The answer is right below.
+
+*Answer 2:*
+```{r, warning=FALSE, message=FALSE}
+# Create a new column indicating highscoring match
+epl_2122 |>
+  mutate(HighScoringMatch = if_else(FTHG + FTAG >= 5, "Y", "N")) |>
+  select(HomeTeam, AwayTeam, FTHG, FTAG, HighScoringMatch)
+```
+
+
+### group_by() 
+ 
+Now we arrive at something different. group_by() is a function that takes column name(s) as input argument. It does not change the number of the data, but from then on, all operations will act on group instead of individual data as we have been doing. The next function introduced might be a better explanation, so let's look forward to that!
+
+```{r, warning=FALSE, message=FALSE}
+# Group the dataset by referee
+epl_2122 |>
+  group_by(Referee)
+```
+
+Here, we see no difference with the data on the surface. However, notice that the data is now grouped by twenty two referees, indicated by "Groups: Referee [22]".
+
+### summarize()
+
+summarize() is a function that takes in a name-value pair(s) that have the name of the new column on the left and an operation on existing column(s) on the right.
+
+This function works well with ungrouped data, where it will produces a single-row summary.
+
+For example, if we want to calculate the average goals per match of the season:
+
+```{r, warning=FALSE, error=FALSE}
+# Calculate the average goal of the season
+epl_2122 |>
+  summarize(AvgGoal = mean(FTHG + FTAG))
+```
+
+This just return a 1 x 1 tibble with a value of 2.82 (goals). (What a bustling league!)
+
+But with grouped data, we can see how powerful the pair grouped_by() - summarize() is.
+
+Sometimes, for fairness analysis, we might want to see if what the pattern looks like between referee and match result. Here, I will first group the data by referee and fulltime result, then count the number of observations:
+
+```{r, warning=FALSE, error=FALSE}
+# Calculate the count of different fulltime result by each referee
+epl_2122 |>
+  group_by(Referee, FTR) |>
+  summarize(Count = n())
+```
+
+The data above is just for practicing. It is essential to keep in mind that the result of the match always depend heavily on the performance of the teams!
+
+## Data Visualization
+
+Moving on to data visualization. Here, we will go straight into the example to demonstrate how we can visualize data and draw brief conclusions from it.
+
+In this example, I will focus on demonstrating number of shots taken and number of shots on target of Manchester City - the 21/22 season champion. For simplicity, we will only work with home matches.
+
+First, I will need to utilize data wrangling to get the dataframe I want.
+
+```{r, warning=FALSE, error=FALSE}
+# Create a data frame shows only Man City and their shots record
+mancity_shot <- epl_2122 |>
+  select(Date, HomeTeam, FTHG, HS, HST) |>
+  filter(HomeTeam == "Man City") |>
+  mutate(Date = as.Date(Date, format = "%d/%m/%Y")) |>
+  pivot_longer(c(FTHG, HS, HST), names_to = "ShotType", values_to = "Count")
+
+# Print out some first rows of the dataframe
+head(mancity_shot)
+```
+
+Notice that I use a function called pivot_longer(). This function is inside a package called "tidyr" inside Tidyverse. It will not be covered in this article, but the use of this here is only for data visualization. 
+
+This dataframe is what we need to start visualizing. My idea is that I will be using a line chart to see the trends of their shots. ggplot2 is the package for this task.
+
+```{r, warning=FALSE, message=FALSE}
+# Create the plot
+mancity_shot |>
+  ggplot(aes(x = Date, y = Count, color = ShotType)) +
+  geom_line() +
+  theme(axis.text.x = element_blank()) +
+  labs(title = "Mancity EPL 21/22 Home Shot Performance",
+       x = "Timeline",
+       y = "Number of Shots") +
+    scale_color_discrete(labels = c("HS" = "Total Shots", 
+                                    "HST" = "On-Target Shots",
+                                    "FTHG" = "Goals"))
+
+```
+
+With the graph, we can see that Man City has been very active in attacking in each match, with none having less than 10 shots. Among all of those shots, roughly half were shots on target, and 1/3 were successfully transformed into goals judging with my bare eyes. This is well-explained why they deserve the title that season!
+
+# Conclusion
+
+Although data analysis is not the main purpose of this article, utilizing data wrangling and data visualizing, we have been able to witness by data how 21/22 is a great comeback season for many teams in the Premier League, given the previous years operating in the pandemic. Matches were bustling with goals. My personal favorite finding is the visualization of Man City's home performance. It would be great if we can investigate more thoroughly how each team performed how their performances were compared to the other. It will now be your job to carry on!
+
+Below is a quick summary of all dplyr functions we have discussed in depth:
+
+1. select()
+- Operates on columns
+- Keeps only specific columns
+
+2. filter()
+- Operates on rows
+- Keeps only rows meeting certain conditions
+
+3. mutate()
+- Operates on columns
+- Create columns by operating on existing columns
+
+4. group_by()
+- Makes no change to # of data
+- Groups rows for subsequent operations
+
+5. summarize()
+- Returns a single row if operated on ungrouped data or as many rows as the number of group if operated on grouped data
